@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"
+            integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnkkoFVhFQhNUwEyJ"
+            crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js"
+            integrity="sha384-A7FZj7v+d/sdmMqp/noQwliLvUsJfDHW+k90mg/a/EheAdgtzNs3hpfag6Ed950n"
+            crossorigin="anonymous"></script>
+    <script src-"https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"
+            integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7GSKFbe8fFjk5JAIXUYHKkDx6Qin1DkWx51bBrb"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"
+            integrity="sha384-vBWwz1ZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"
+            type="text/javascript"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Enterprise Object Detection Demo</h1>
+        <p class="description">Upload an image to detect objects using a state-of-the-art deep learning model trained on the COCO dataset. The detected objects will be highlighted and labeled automatically. This demo runs entirely on your server and does not send images to the cloud.</p>
+        <form id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
+            <label for="inputFile1" class="upload-area" id="upload-area">
+                <span id="upload-text">Click or drag an image here to upload</span>
+                <input type="file" name="file" id="inputFile1" accept="image/*">
+            </label>
+            <button type="submit" id="uploadBtn">Upload</button>
+        </form>
+        <div id="result-area" {% if not show_result %}style="display:none;"{% endif %}>
+            <h2>Detection Result</h2>
+            {% if result_image %}
+            <img id="result-image" src="{{ result_image }}" alt="Detected objects" />
+            <a class="download-btn" href="{{ result_image }}" download>Download Result Image</a>
+            {% endif %}
+            {% if detection_details %}
+            <div class="detection-details">
+                <h3>Detected Objects</h3>
+                <ul>
+                {% for det in detection_details %}
+                    <li><strong>{{ det.label }}</strong> ({{ '%.2f' % det.score }})</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        <img id="preview" src="#" alt="Image preview" style="display:none;" />
+        {% if history and history|length > 1 %}
+        <div class="history-area">
+            <h2>Recent Results</h2>
+            <ul class="history-list">
+            {% for item in history %}
+                <li>
+                    <a href="/uploads/{{ item.filename }}" target="_blank">{{ item.filename }}</a>
+                    {% if item.detections %}
+                        <span class="history-labels">
+                        {% for det in item.detections %}
+                            <span class="label-chip">{{ det.label }}</span>
+                        {% endfor %}
+                        </span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</body>
+
+<script>
+    // Modern drag-and-drop and preview logic + show detection result
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadArea = document.getElementById('upload-area');
+        const inputFile = document.getElementById('inputFile1');
+        const preview = document.getElementById('preview');
+        const uploadText = document.getElementById('upload-text');
+        const uploadForm = document.getElementById('uploadForm');
+        const resultArea = document.getElementById('result-area');
+        const resultImage = document.getElementById('result-image');
+
+        // Drag and drop events
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                inputFile.files = e.dataTransfer.files;
+                showPreview(e.dataTransfer.files[0]);
+            }
+        });
+
+        // File input change
+        inputFile.addEventListener('change', function(e) {
+            if (inputFile.files && inputFile.files[0]) {
+                showPreview(inputFile.files[0]);
+            }
+        });
+
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Intercept form submit to show result image after upload
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(uploadForm);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // The server redirects to /uploads/<filename>
+                    resultImage.src = response.url;
+                    resultArea.style.display = 'block';
+                    preview.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+</html>

@@ -1,0 +1,7 @@
+flask==2.0.2
+flask-wtf==0.15.1
+numpy
+pillow
+tensorflow
+opencv-python-headless
+werkzeug<2.1
