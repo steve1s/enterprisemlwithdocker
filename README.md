@@ -14,6 +14,7 @@ The goal is to provide a foundation for building scalable, production-grade ML s
 ---
 
 ## 🧩 Repository Structure
+```bash 
 enterprisemlwithdocker/
 ├── data/ # Sample datasets
 ├── src/ # Core Python modules
@@ -44,9 +45,13 @@ enterprisemlwithdocker/
 ```bash
 docker-compose build
 
+```bash
 docker-compose run ml python -m pytest -q
 
+```bash
 docker-compose run ml python src/train.py --epochs 10 --data-path /data/train.csv
 
+
+```bash
 docker-compose up
 
