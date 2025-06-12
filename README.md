@@ -44,14 +44,14 @@ enterprisemlwithdocker/
 
 ```bash
 docker-compose build
-
+```
 ```bash
 docker-compose run ml python -m pytest -q
-
+```
 ```bash
 docker-compose run ml python src/train.py --epochs 10 --data-path /data/train.csv
-
+```
 
 ```bash
 docker-compose up
-
+```
