@@ -28,7 +28,7 @@ enterprisemlwithdocker/
 ├── tests/ # Unit tests for key modules
 └── README.md # This file
 
----
+```
 
 ## ⚙️ Requirements
 
